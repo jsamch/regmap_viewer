@@ -9,15 +9,26 @@ import mmap
 import struct
 import optparse
 import cmd
+from regmap import *
 
-class RegMapViewer(cmd.Cmd):
+class RegMapViewer(cmd.Cmd, object):
+	
 	"""Register Map Viewer interactive shell"""
+	def __init__(self):
+		cmd.Cmd.__init__(self)
+		self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')		
 
 	def do_readreg(self, addr = 0):
 		"""Retrieves the contents of a particular register"""
 		content = 0
 		output_str = 'Content of register {0} is {1}'.format(addr, content) 
 		print(output_str)
+		#print(self.regmap_o.prefixes())
+
+	def complete_readreg(self, text, line, begindx, endidx):
+		mline = line.partition(' ')[2] # Get the string after the first space
+		offs = len(mline) - len(text) 
+		return [s for s in self.regmap_o.periph_prefix_list if s.startswith(mline)]
 
 	def do_writereg(self, addr, content):
 		""" Set a register to a specific value"""
@@ -58,3 +69,7 @@ class RegMapViewer(cmd.Cmd):
 
 if __name__ ==  '__main__':
 	RegMapViewer().cmdloop()
+
+"""
+	
+"""
