@@ -1,3 +1,10 @@
+"""
+(C) 2013 MotSAI Research Inc.
+Author: Alexandre Courtemanche (a.courtemanche@motsai.com)
+
+Register Map Object
+"""
+
 import xml.etree.ElementTree as ET
 
 eim_periph_index = 84

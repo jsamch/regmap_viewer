@@ -1,6 +1,8 @@
 """
-Copyright MotSAI Research Inc.
+(C) 2013 MotSAI Research Inc.
 Author: Alexandre Courtemanche (a.courtemanche@motsai.com)
+
+Register Map Viewer
 """
 
 import os
@@ -11,9 +13,10 @@ import optparse
 import cmd
 from regmap import *
 
-class RegMapViewer(cmd.Cmd, object):
-	
+
+class RegMapViewer(cmd.Cmd, object):	
 	"""Register Map Viewer interactive shell"""
+	
 	def __init__(self):
 		cmd.Cmd.__init__(self)
 		self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')		
