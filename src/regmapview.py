@@ -16,7 +16,7 @@ from regmap import *
 
 class RegMapViewer(cmd.Cmd, object):	
 	"""Register Map Viewer interactive shell"""
-	
+
 	def __init__(self):
 		cmd.Cmd.__init__(self)
 		self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')		
@@ -30,8 +30,22 @@ class RegMapViewer(cmd.Cmd, object):
 
 	def complete_readreg(self, text, line, begindx, endidx):
 		mline = line.partition(' ')[2] # Get the string after the first space
-		offs = len(mline) - len(text) 
-		return [s for s in self.regmap_o.periph_prefix_list if s.startswith(mline)]
+		prefixes = self.regmap_o.prefixes()
+		if mline in prefixes:
+			print(mline)
+			periph_index = prefixes.index(mline)
+			# Build the list of possible register names
+			complete_reglist = []
+			print(periph_index)
+			print(self.egmap_o.reglists())
+			for reg in self.regmap_o.reglists()[periph_index]:
+				print('periph_index; ' + periph_index)
+				complete_reglist.append(prefixes[periph_index]+reg)
+			print complete_reglist
+			print('hi')
+			return [s for s in complete_reglist if s.startswith(mline)]
+		else:
+			return [s for s in self.regmap_o.prefixes() if s.startswith(mline)]
 
 	def do_writereg(self, addr, content):
 		""" Set a register to a specific value"""

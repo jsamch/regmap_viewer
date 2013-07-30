@@ -41,3 +41,6 @@ class RegMap(object):
 
 	def prefixes(self):
 		return self.periph_prefix_list
+
+	def reglists(self):
+		return self.reg_lists
