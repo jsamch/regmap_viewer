@@ -9,7 +9,6 @@ import xml.etree.ElementTree as ET
 
 eim_periph_index = 84
 
-
 class RegMap(object):
 	"""Register Map Object"""
 	def __init__(self, svd):
@@ -20,10 +19,12 @@ class RegMap(object):
 		#Initialize lists
 		self.reg_lists = []
 		self.periph_prefix_list = []
+		self.periphlist = list(periphs)
 
 		#Construct lists
 		for periph in periphs:
 			self.periph_prefix_list.append(periph.find('prependToName').text)
+			
 			print('Processing peripheral {0}'.format(periph.find('name').text))
 			regs = periph.find('registers')
 			reg_list = []
@@ -43,3 +44,6 @@ class RegMap(object):
 
 	def reglists(self):
 		return self.reg_lists
+
+	def peripherals(self):
+		return self.periphlist

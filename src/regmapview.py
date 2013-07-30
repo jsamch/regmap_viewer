@@ -21,14 +21,13 @@ class RegMapViewer(cmd.Cmd, object):
 	def __init__(self):
 		cmd.Cmd.__init__(self)
 		#self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')
-		self.rr_num_words_in_line = 0
-		self.rr_completed_prefix = False	
-		self.rr_complete_reglist = []
+		self.reset_autocomplete()
 
 	def reset_autocomplete(self):
 		self.rr_num_words_in_line = 0
 		self.rr_completed_prefix = False	
 		self.rr_complete_reglist = []
+		self.rr_periph_index = None
 
 	def do_createregmap(self, dumpfile= './iMX6DQ.p', svd = '../svd/iMX6DQ.svd.xml'):
 		print('Parsing file')
@@ -46,9 +45,7 @@ class RegMapViewer(cmd.Cmd, object):
 		"""Retrieves the contents of a particular register"""
 		content = 0
 		# Reset the autocomplete parameters
-		self.rr_num_words_in_line = 0
-		self.rr_completed_prefix = False	
-		self.rr_complete_reglist = []
+		self.reset_autocomplete()
 		output_str = 'Content of register {0} is {1}'.format(addr, content)
 		print(output_str)
 		#print(self.regmap_o.reglists()[84])
@@ -56,19 +53,50 @@ class RegMapViewer(cmd.Cmd, object):
 	def complete_readreg(self, text, line, beginidx, endidx):
 		mline = line.partition(' ')[2] # Get the string after the first space
 		prefixes = self.regmap_o.prefixes()
-
+		autocomplete_list = []
+		mylist = ['SATA_', 'zvc', 'qwer']
+		'''
+		print('hi')
+		print(prefixes)
+		print(mline)
+		print(self.rr_periph_index)
+		print('mline.startswith(prefixes(self.rr_periph_index) = '+ mline.startswith(prefixes(self.rr_periph_index)))
+		'''
 		if (mline in prefixes):
-			self.rr_completed_prefix = True
 			# Build reg list
-			periph_index = prefixes.index(mline)
-			for reg in self.regmap_o.reglists()[periph_index]:
-				self.rr_complete_reglist.append(prefixes[periph_index]+reg)
-			return [s for s in self.rr_complete_reglist if s.startswith(mline)]
+			#self.rr_periph_index = prefixes.index(mline)
+			print('hi')
+			print('prefixes.index(mline)' + mylist.index(mline))
+			#for reg in self.regmap_o.reglists()[self.rr_periph_index]:
+			#	self.rr_complete_reglist.append(prefixes[self.rr_periph_index]+reg)
+			#return [s for s in self.rr_complete_reglist if s.startswith(mline)]
+			return [s for s in prefixes if s.startswith(mline)]
 		else:
-			if self.rr_completed_prefix: # The line contains the prefix and something more
-				return [s for s in self.rr_complete_reglist if s.startswith(mline)]
-			else: # User has not yet completed the prefix
-				return [s for s in self.regmap_o.prefixes() if s.startswith(mline)]
+			return [s for s in prefixes if s.startswith(mline)]
+
+		'''
+		# Completed the prefix
+		if (mline in prefixes):
+			# Build reg list
+			print('1')
+			self.rr_periph_index = prefixes.index(mline)
+			for reg in self.regmap_o.reglists()[self.rr_periph_index]:
+				self.rr_complete_reglist.append(prefixes[self.rr_periph_index]+reg)
+			return [s for s in self.rr_complete_reglist if s.startswith(mline)]
+		# Changed prefix
+		elif self.rr_periph_index is None:
+			print('2')
+			return [s for s in prefixes if s.startswith(mline)]
+		elif mline.startswith(prefixes(self.rr_periph_index)):
+			print('3')
+			return [s for s in self.rr_complete_reglist if s.startswith(mline)]
+		else: # User has not yet completed the prefix
+			print('4')
+			self.rr_periph_index = None
+			return [s for s in prefixes if s.startswith(mline)]
+		return autocomplete_list
+		'''
+
 
 	def do_writereg(self, addr, content):
 		""" Set a register to a specific value"""
@@ -110,6 +138,3 @@ class RegMapViewer(cmd.Cmd, object):
 if __name__ ==  '__main__':
 	RegMapViewer().cmdloop()
 
-"""
-	
-"""
