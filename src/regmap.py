@@ -10,9 +10,8 @@ import xml.etree.ElementTree as ET
 eim_periph_index = 84
 
 
-""" Create the list of peripheral prefix names"""
 class RegMap(object):
-	"""docstring for RegMap"""
+	"""Register Map Object"""
 	def __init__(self, svd):
 		self.xmltree = ET.parse(svd)
 		self.root = self.xmltree.getroot()
