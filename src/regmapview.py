@@ -11,6 +11,7 @@ import mmap
 import struct
 import optparse
 import cmd
+import cPickle as pickle
 from regmap import *
 
 
@@ -19,10 +20,27 @@ class RegMapViewer(cmd.Cmd, object):
 
 	def __init__(self):
 		cmd.Cmd.__init__(self)
-		self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')
+		#self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')
 		self.rr_num_words_in_line = 0
 		self.rr_completed_prefix = False	
 		self.rr_complete_reglist = []
+
+	def reset_autocomplete(self):
+		self.rr_num_words_in_line = 0
+		self.rr_completed_prefix = False	
+		self.rr_complete_reglist = []
+
+	def do_createregmap(self, dumpfile= './iMX6DQ.p', svd = '../svd/iMX6DQ.svd.xml'):
+		print('Parsing file')
+		rm = RegMap(svd)
+		print('Serializing...')
+		pickle.dump( rm, open('./iMX6DQ.p', 'wb'))
+		print('Saved to file '+ dumpfile)
+
+	def do_loadregmap(self, filename):
+		self.reset_autocomplete()
+		print('Loading '+ filename)
+		self.regmap_o = pickle.load(open('iMX6DQ.p', 'rb'))
 
 	def do_readreg(self, addr = 0):
 		"""Retrieves the contents of a particular register"""
