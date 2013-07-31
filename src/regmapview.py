@@ -21,10 +21,12 @@ class RegMapViewer(cmd.Cmd, object):
 	def __init__(self):
 		cmd.Cmd.__init__(self)
 		#self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')
-		self.rr_num_words_in_line = 0
-		self.rr_completed_prefix = False	
-		self.rr_complete_reglist = []
-
+		self.reset_autocomplete()
+		'''
+		if self.regmap_o == None:
+			print('Loading '+ filename)
+			self.regmap_o = pickle.load(open('iMX6DQ.p', 'rb'))
+		'''
 	def reset_autocomplete(self):
 		self.rr_num_words_in_line = 0
 		self.rr_completed_prefix = False	
@@ -55,20 +57,26 @@ class RegMapViewer(cmd.Cmd, object):
 
 	def complete_readreg(self, text, line, beginidx, endidx):
 		mline = line.partition(' ')[2] # Get the string after the first space
-		prefixes = self.regmap_o.prefixes()
+		prefixes = self.regmap_o.get_periph_prefixes()
 
 		if (mline in prefixes):
 			self.rr_completed_prefix = True
 			# Build reg list
+			print('got in')
+			self.rr_complete_reglist = self.regmap_o.get_reg_names(mline)
+			print('got out')
+			'''
 			periph_index = prefixes.index(mline)
-			for reg in self.regmap_o.reglists()[periph_index]:
+			for reg in self.regmap_o.get_reg_names()[periph_index]:
 				self.rr_complete_reglist.append(prefixes[periph_index]+reg)
+			'''
 			return [s for s in self.rr_complete_reglist if s.startswith(mline)]
 		else:
 			if self.rr_completed_prefix: # The line contains the prefix and something more
 				return [s for s in self.rr_complete_reglist if s.startswith(mline)]
 			else: # User has not yet completed the prefix
-				return [s for s in self.regmap_o.prefixes() if s.startswith(mline)]
+				print('hi')
+				return [s for s in prefixes if s.startswith(mline)]
 
 	def do_writereg(self, addr, content):
 		""" Set a register to a specific value"""
@@ -76,6 +84,9 @@ class RegMapViewer(cmd.Cmd, object):
 		print(output_str)
 		output_str = 'Content of register {0} is {1}'.format(addr, content)
 		print(output_str)
+
+	def do_map(self, hi):
+		print(self.regmap_o)
 
 	def do_rp(self, periph):
 		self.do_readperiph(periph)
