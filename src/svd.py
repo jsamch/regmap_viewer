@@ -46,22 +46,11 @@ class SVDPeripheral:
 			registers = svd_elem.registers.getchildren()
 			for r in registers:
 				try: #Dimensioned registers
-					#print('r.dim = {0} r.dimIndex = {1}'.format( str(r.dim), r.dimIndex[x].split[',']))
-					#print('Dimensioned register: ' + str(r.dim))
 					self.flag = True
-					#print('hi')
-					#print( r.dimIndex.text)
-					#print( r.dimIndex.text.split(','))
-					#print( r.dimIndex.text.split(',')[0])
-					#print( r.dimIndex.text.split(',')[1])
-					#print(dimIndex)
 					for x in xrange(0, r.dim-1):
 						key = str(r.name) % str(r.dimIndex.text.split(',')[x])
 						self.registers[key] = SVDPeripheralRegister(r, self, x)
-						#print('r.name = %s + r.dimIndex[%d] = %s = ', str(r.name), x, str(r.name) % str(r.dimIndex[x]))
-						#print('r.name = {0} + r.dimIndex[{1}] = {2} '.format(str(r.name), x, str(r.name) % str(r.dimIndex[x])))
 				except:
-					#print(str(r.name))
 					self.registers[str(r.name)] = SVDPeripheralRegister(r, self)
 			return
 		try:
@@ -88,13 +77,11 @@ class SVDPeripheralRegister:
 		self.parent = parent
 		self.name = str(svd_elem.name)
 		self.description = str(svd_elem.description)
-		#self.dimi = None
 		try:
 			self.offset = int(str(svd_elem.addressOffset),0) + int(str(svd_elem.dimIncrement),0) * offset
 		except :
 			self.offset = int(str(svd_elem.addressOffset),0)		
 
-		#self.offset = int(str(svd_elem.addressOffset),0)
 		self.size = int(str(svd_elem.size),0)
 
 		fields = svd_elem.fields.getchildren()
