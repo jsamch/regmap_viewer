@@ -29,28 +29,11 @@ class RegMapViewer(cmd.Cmd, object):
 		self.rr_completed_prefix = False	
 		self.rr_complete_reglist = []
 
-	def do_loadregmap(self, filename):
-		if filename == '':
-			filename = "../svd/iMX6DQ.svd.xml"
-		print('Loading '+ filename)
-		self.svd = SVDFile(filename)
-
-
-	def do_readreg(self, addr = 0):
-		"""Retrieves the contents of a particular register"""
-		content = 0
-		# Reset the autocomplete parameters
-		self.reset_autocomplete()
-		output_str = 'Content of register {0} is {1}'.format(addr, content)
-		print(output_str)
-
-	def complete_readreg(self, text, line, beginidx, endidx):
+	def autocomplete_reg(self, line):
 		mline = line.partition(' ')[2] # Get the string after the first space
 		prefixes = []
 		for p in self.svd.peripherals.iteritems():
 			prefixes.append(p[0] + '_')
-		print(mline in prefixes)
-		print('mline = ' + mline)
 		if (mline in prefixes):
 			self.rr_completed_prefix = True
 			self.rr_chosen_periph_str = mline.split('_')[0]
@@ -64,6 +47,40 @@ class RegMapViewer(cmd.Cmd, object):
 			else: # User has not yet completed the prefix
 				return [s for s in prefixes if s.startswith(mline)]
 
+	def do_loadregmap(self, filename):
+		if filename == '':
+			filename = "../svd/iMX6DQ.svd.xml"
+		print('Loading '+ filename)
+		self.svd = SVDFile(filename)
+
+
+	def do_readreg(self, periph_reg):
+		"""Retrieves the contents of a particular register"""
+		content = 0
+		# Reset the autocomplete parameters
+		self.reset_autocomplete()
+		line = periph_reg.split('_')
+		peripheral = line[0]
+		register = line[1]
+		addr = self.svd.peripherals[peripheral].registers[register].address()
+		fields = self.svd.peripherals[peripheral].registers[register].get_fields()
+
+		field_string = 'The fields are: '
+		for field in fields:
+			field_string += 'name = {0}\n'.format(field[0])
+			field_string += 'description = {0}\n'.format(field[1])
+			field_string += 'bitOffset = {0}\t'.format(field[2])
+			field_string += 'bitWidth = {0}\t'.format(field[3])
+			field_string += 'access = {0}\n'.format(field[4])
+			field_string += '\n'
+
+		output_str = 'Content of register {0} at address {1} is {2}\n\n'.format(periph_reg, hex(addr), content)
+		output_str += field_string
+		print(output_str)
+
+	def complete_readreg(self, text, line, beginidx, endidx):
+		return self.autocomplete_reg(line)
+
 	def do_writereg(self, addr, content):
 		""" Set a register to a specific value"""
 		output_str = 'Content of register {0} is {1}'.format(addr, content) 
@@ -73,6 +90,17 @@ class RegMapViewer(cmd.Cmd, object):
 
 	def do_map(self, hi):
 		print(self.regmap_o)
+
+	def do_addr(self, periph_reg):
+		line = periph_reg.split('_')
+		peripheral = line[0]
+		register = line[1]
+		addr = self.svd.peripherals[peripheral].registers[register].address()
+		output_str = 'The address of register {0} is {1}'.format(periph_reg, hex(addr))
+		print(output_str)
+
+	def complete_addr(self, text, line, beginidx, endidx):
+		return self.autocomplete_reg(line)
 
 	def do_rp(self, periph):
 		self.do_readperiph(periph)
@@ -104,6 +132,7 @@ class RegMapViewer(cmd.Cmd, object):
 		"""Quits the program"""
 		return True
 
+	
 
 if __name__ ==  '__main__':
 	RegMapViewer().cmdloop()
