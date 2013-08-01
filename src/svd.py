@@ -79,7 +79,7 @@ class SVDPeripheralRegister:
 		self.description = str(svd_elem.description)
 		try:
 			self.offset = int(str(svd_elem.addressOffset),0) + int(str(svd_elem.dimIncrement),0) * offset
-		except :
+		except AttributeError:
 			self.offset = int(str(svd_elem.addressOffset),0)		
 
 		self.size = int(str(svd_elem.size),0)
@@ -92,11 +92,17 @@ class SVDPeripheralRegister:
 	def refactor_parent(self, parent):
 		self.parent = parent
 		for f in self.fields.itervalues():
-			f.refactor_parent(self)
-		
+			f.refactor_parent(self)	
 
 	def address(self):
 		return self.parent.base_address + self.offset
+
+	def get_fields(self):
+		register_fields = []
+		for field in self.fields.itervalues():
+			field_tuple = str(field.name), str(field.description), int(field.offset), int(field.width), str(field.access)
+			register_fields.append(field_tuple)
+		return register_fields
 	
 	def __unicode__(self):
 		return str(self.name)
@@ -105,19 +111,40 @@ class SVDPeripheralRegisterField:
 	def __init__(self, svd_elem, parent):
 		self.parent = parent
 		self.name = str(svd_elem.name)
-		self.description = str(svd_elem.description)
+		self.description = str(svd_elem.description.text)
 		self.offset = int(str(svd_elem.bitOffset))
 		self.width = int(str(svd_elem.bitWidth))
 		try:
 			self.access = svd_elem.access
 		except AttributeError:
 			self.access = ''
+		#print('got here')
+		
+		try:
+			enumeratedValues = svd_elem.enumeratedValues.getchildren()
+			self.enumeratedValues = OrderedDict()
+			for ev in enumeratedValues:
+				self.enumeratedValues[str(ev.name)] = SVDEnumeratedValue(ev, self)
+		except AttributeError:
+			pass
 
 	def refactor_parent(self, parent):
 		self.parent = parent
 	
 	def __unicode__(self):
 		return str(self.name)
+
+class SVDEnumeratedValue:
+	def __init__(self, svd_elem, parent):
+		self.parent = parent
+		self.name = str(svd_elem.name)
+		#self.description = str(svd_elem.description.text)
+		try:
+			self.value = int(str(svd_elem.value).strip('#x'))
+		except ValueError:
+			self.value = -1
+			#print(str(svd_elem.value))
+		
 
 #if __name__ == '__main__':
 #	svd = SVDFile(sys.argv[1])
