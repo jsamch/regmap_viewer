@@ -5,14 +5,7 @@ Author: Alexandre Courtemanche (a.courtemanche@motsai.com)
 Register Map Viewer
 """
 
-import os
-import sys
-import mmap
-import struct
-import optparse
 import cmd
-
-import cPickle as pickle
 from svd import *
 
 
@@ -32,7 +25,7 @@ class RegMapViewer(cmd.Cmd, object):
 	def autocomplete_reg(self, line):
 		mline = line.partition(' ')[2] # Get the string after the first space
 		prefixes = []
-		for p in self.svd.peripherals.iteritems():
+		for p in self.svd.peripherals.items():
 			prefixes.append(p[0] + '_')
 		if (mline in prefixes):
 			self.rr_completed_prefix = True

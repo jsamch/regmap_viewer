@@ -33,7 +33,6 @@ class SVDFile:
 
 class SVDPeripheral:
 	def __init__(self, svd_elem, parent):
-		self.flag = False
 		self.parent = parent
 		self.base_address = int(str(svd_elem.baseAddress), 0)
 		try:
@@ -46,8 +45,7 @@ class SVDPeripheral:
 			registers = svd_elem.registers.getchildren()
 			for r in registers:
 				try: #Dimensioned registers
-					self.flag = True
-					for x in xrange(0, r.dim-1):
+					for x in range(0, r.dim-1):
 						key = str(r.name) % str(r.dimIndex.text.split(',')[x])
 						self.registers[key] = SVDPeripheralRegister(r, self, x)
 				except:
@@ -66,7 +64,7 @@ class SVDPeripheral:
 
 	def refactor_parent(self, parent):
 		self.parent = parent
-		for r in self.registers.itervalues():
+		for r in self.registers.values():
 			r.refactor_parent(self)
 			
 	def __unicode__(self):
@@ -91,7 +89,7 @@ class SVDPeripheralRegister:
 	
 	def refactor_parent(self, parent):
 		self.parent = parent
-		for f in self.fields.itervalues():
+		for f in self.fields.values():
 			f.refactor_parent(self)	
 
 	def address(self):
@@ -99,7 +97,8 @@ class SVDPeripheralRegister:
 
 	def get_fields(self):
 		register_fields = []
-		for field in self.fields.itervalues():
+		for field in self.fields.values():
+			print(field)
 			field_tuple = str(field.name), str(field.description), int(field.offset), int(field.width), str(field.access)
 			register_fields.append(field_tuple)
 		return register_fields
@@ -138,13 +137,17 @@ class SVDEnumeratedValue:
 	def __init__(self, svd_elem, parent):
 		self.parent = parent
 		self.name = str(svd_elem.name)
-		#self.description = str(svd_elem.description.text)
 		try:
+			self.description = str(svd_elem.description.text)
 			self.value = int(str(svd_elem.value).strip('#x'))
 		except ValueError:
 			self.value = -1
-			#print(str(svd_elem.value))
-		
+	
+	def refactor_parent(self, parent):
+		self.parent = parent
+
+	def __unicode__(self):
+		return str(self.name)
 
 #if __name__ == '__main__':
 #	svd = SVDFile(sys.argv[1])
