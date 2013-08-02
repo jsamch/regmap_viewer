@@ -6,6 +6,7 @@ Register Map Viewer
 """
 
 import cmd
+import pickle
 from svd import *
 
 
@@ -46,6 +47,13 @@ class RegMapViewer(cmd.Cmd, object):
 		print('Loading '+ filename)
 		self.svd = SVDFile(filename)
 
+	def do_savepickle(self, line):
+		output = open('tree.p', 'wb')
+		pickle.dump(self.svd, output, pickle.HIGHEST_PROTOCOL)
+
+	def do_loadpickle(self, line):
+		inputfile = open('tree.p', 'rb')
+		self.svd = pickle.load(inputfile)
 
 	def do_readreg(self, periph_reg):
 		"""Retrieves the contents of a particular register"""
