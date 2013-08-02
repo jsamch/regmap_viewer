@@ -117,7 +117,6 @@ class SVDPeripheralRegisterField:
 			self.access = svd_elem.access
 		except AttributeError:
 			self.access = ''
-		#print('got here')
 		
 		try:
 			enumeratedValues = svd_elem.enumeratedValues.getchildren()
