@@ -1,11 +1,4 @@
-#include <sys/mman.h>
-#include <sys/time.h>
-#include <err.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "devmem.h"
 
 #define MMAP_BUFFER_LENGTH 1024
 #define READ_COUNT      1 
@@ -25,18 +18,18 @@ int read_reg(int addr)
 	// Open at the boundary of a page
 	int write_offset = (addr % pagesize);
 	int page_boundary_addr = addr - write_offset; 
-	printf("page_boundary = %x", page_boundary_addr); 
+	//printf("page_boundary = %x\n", page_boundary_addr);
+	//printf("write_offset = %x\n", write_offset);
 	if ((fd = open("/dev/mem", O_RDWR, 0)) == -1) 
-	{ 
-		 err(1, "open"); 
-	} 
+	{
+		err(1, "open"); 
+	}
 	
 	ptr = mmap(NULL, MMAP_BUFFER_LENGTH, PROT_WRITE | PROT_READ, MAP_SHARED, 
-			 fd, page_boundary_addr); 
-	
-	printf("ptr = %x\n", ptr);
-	printf("write_offset = %x\n", write_offset); 
-	value = *(ptr + write_offset); 
+			fd, page_boundary_addr); 
+	//printf("ptr = %x\n", ptr);
+	//printf("write_offset = %x\n", write_offset); 
+	reg_cont = *(ptr + write_offset); 
 	 
 	munmap(ptr, MMAP_BUFFER_LENGTH); 
 
@@ -44,6 +37,7 @@ int read_reg(int addr)
 
 	return reg_cont;
 }
+
 
 int write_reg(int addr, int value)
 {
@@ -70,7 +64,7 @@ int write_reg(int addr, int value)
 	 
 	//printf("write_offset = %x\n", write_offset); 
 	*(ptr + write_offset)  = value; 
-	 
+	
 	munmap(ptr, MMAP_BUFFER_LENGTH); 
 
 	close(fd); 
@@ -78,20 +72,33 @@ int write_reg(int addr, int value)
 	return reg_cont;
 }
 
+#if 0
 int main(int argc, char *argv[])
 {
-	write_reg(0x021E8040, (int) 'a');
+	/*write_reg(0x021E8040, (int) 'a');
 	write_reg(0x021E8040, (int) 'l');
 	write_reg(0x021E8040, (int) 'e');
 	write_reg(0x021E8040, (int) 'x');
-
-	printf("Reading register %x:\n", 0x021E8094);
-	int reg = read_reg(0x021E8094);
-	printf("Value is %x\n", reg);
+	*/
+	int addr = 0x021880E4;
+	printf("Reading register %x:\n", addr);
+	int reg = read_reg(addr);
+	printf("Value is 0x%08x\n\n", reg);
+	addr = 0x021880E8;
+	printf("Reading register %x:\n", addr);
+	reg = read_reg(addr);
+	printf("Value is 0x%08x\n\n", reg);
+	addr = 0x021880EC;
+	printf("Reading register %x:\n", addr);
+	reg = read_reg(addr);
+	printf("Value is 0x%08x\n\n", reg);
+	addr = 0x021E80AC;
+	printf("Reading register %x:\n", addr);
+	reg = read_reg(addr);
+	printf("Value is 0x%08x\n\n", reg);
 }
 
 
-#if 0
 int main(int argc, char *argv[])
 {
 		int i=0;
