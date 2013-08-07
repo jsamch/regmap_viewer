@@ -95,11 +95,31 @@ class SVDPeripheralRegister:
 	def address(self):
 		return self.parent.base_address + self.offset
 
-	def get_fields(self):
+	def get_fields(self, value):
 		register_fields = []
 		for field in self.fields.values():
-			print(field)
-			field_tuple = str(field.name), str(field.description), int(field.offset), int(field.width), str(field.access)
+			#print(field)
+
+			# Mask and receive offset
+			bits = (2^field.width) - 1
+			mask = bits << field.offset
+			#print('mask = {0} value = {1}'.format(hex(mask), (hex(value))))
+			calculatedval = value & mask
+			calculatedval = calculatedval >> field.offset
+			#print('calculatedval = {0}'.format(hex(calculatedval) ))
+			try:
+				evs = field.enumeratedValues.values()
+				
+				for ev in evs:
+					if (ev.value == calculatedval):
+						field.value = ev.value
+						field.valuedescription = ev.description
+				field_tuple = str(field.name), str(field.description), str(field.valuedescription), str(field.access)
+
+			except AttributeError:
+				field.value = calculatedval
+				field_tuple = str(field.name), str(field.description), str(field.value), str(field.access)
+				
 			register_fields.append(field_tuple)
 		return register_fields
 	
