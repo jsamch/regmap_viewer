@@ -17,6 +17,8 @@ class RegMapViewer(cmd.Cmd, object):
 		cmd.Cmd.__init__(self)
 		#self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')
 		self.reset_autocomplete()
+		self.verbose = False
+		#self.devmem = DevMem()
 
 	def reset_autocomplete(self):
 		self.rr_num_words_in_line = 0
@@ -64,19 +66,23 @@ class RegMapViewer(cmd.Cmd, object):
 		peripheral = line[0]
 		register = line[1]
 		addr = self.svd.peripherals[peripheral].registers[register].address()
-		fields = self.svd.peripherals[peripheral].registers[register].get_fields()
+		content = 0x00000098
+		fields = self.svd.peripherals[peripheral].registers[register].get_fields(content)
+		if(self.verbose):
+			field_string = 'The fields are: '
+			for field in fields:
+				field_string += 'name = {0}\n'.format(field[0])
+				field_string += 'description = {0}\n'.format(field[1])
+				field_string += 'value = {0}\n'.format(field[2])
+				field_string += 'access = {0}\n'.format(field[3])
+				field_string += '\n'
 
-		field_string = 'The fields are: '
-		for field in fields:
-			field_string += 'name = {0}\n'.format(field[0])
-			field_string += 'description = {0}\n'.format(field[1])
-			field_string += 'bitOffset = {0}\t'.format(field[2])
-			field_string += 'bitWidth = {0}\t'.format(field[3])
-			field_string += 'access = {0}\n'.format(field[4])
-			field_string += '\n'
-
-		output_str = 'Content of register {0} at address {1} is {2}\n\n'.format(periph_reg, hex(addr), content)
-		output_str += field_string
+			output_str = 'Content of register {0} at address 0x{1:08x}is 0x{2:08x}\n\n'.format(periph_reg, (addr), (content))
+			output_str += field_string
+		else:
+			output_str = 'Content of register {0} at address 0x{1:08x} is 0x{2:08x}\n'.format(periph_reg, (addr), (content))
+			for field in fields:
+				output_str += "{0}({1}) = {2}\n".format(field[0], field[3], field[2])
 		print(output_str)
 
 	def complete_readreg(self, text, line, beginidx, endidx):
