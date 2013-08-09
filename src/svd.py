@@ -98,10 +98,8 @@ class SVDPeripheralRegister:
 	def get_fields(self, value):
 		register_fields = []
 		for field in self.fields.values():
-			#print(field)
-
 			# Mask and receive offset
-			bits = (2^field.width) - 1
+			bits = (2**field.width) - 1
 			mask = bits << field.offset
 			#print('mask = {0} value = {1}'.format(hex(mask), (hex(value))))
 			calculatedval = value & mask
@@ -110,7 +108,7 @@ class SVDPeripheralRegister:
 			#print('calculatedval = {0}'.format(hex(calculatedval) ))
 			try:
 				evs = field.enumeratedValues.values()
-				
+
 				for ev in evs:
 					if (ev.value == calculatedval):
 						field.value = ev.value

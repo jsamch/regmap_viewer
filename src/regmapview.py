@@ -19,7 +19,7 @@ class RegMapViewer(cmd.Cmd, object):
 		#self.regmap_o = RegMap('../svd/iMX6DQ.svd.xml')
 		self.reset_autocomplete()
 		self.verbose = False
-		#self.devmem = DevMem()
+		self.devmem = DevMem()
 
 	def reset_autocomplete(self):
 		self.rr_num_words_in_line = 0
@@ -67,8 +67,8 @@ class RegMapViewer(cmd.Cmd, object):
 		peripheral = line[0]
 		register = line[1]
 		addr = self.svd.peripherals[peripheral].registers[register].address()
-		#content = self.devmem.read(addr)
-		content = 0x00000098
+		content = self.devmem.read(addr)
+		#content = 0x00000098
 		fields = self.svd.peripherals[peripheral].registers[register].get_fields(content)
 		
 		output_str = 'Content of register {0} at address 0x{1:08x} is 0x{2:08x}\n'.format(periph_reg, \
@@ -83,12 +83,25 @@ class RegMapViewer(cmd.Cmd, object):
 	def complete_readreg(self, text, line, beginidx, endidx):
 		return self.autocomplete_reg(line)
 
-	def do_writereg(self, addr, content):
+	def do_writereg(self, periph_reg_content):
 		""" Set a register to a specific value"""
-		output_str = 'Content of register {0} is {1}'.format(addr, content) 
+		# Reset the autocomplete parameters
+		self.reset_autocomplete()
+		line = periph_reg_content.split(' ')
+		periph_reg = line[0].split('_')
+		peripheral = periph_reg[0]
+		register = periph_reg[1]
+		content = int(line[1][0])
+		addr = self.svd.peripherals[peripheral].registers[register].address()
+		beforecontent = self.devmem.read(addr)
+		output_str = 'Before write: content of register {0} is {1}'.format(addr, beforecontent)
 		print(output_str)
-		output_str = 'Content of register {0} is {1}'.format(addr, content)
+		self.devmem.write(addr, content)
+		output_str = 'After write: content of register {0} is {1}'.format(addr, content)
 		print(output_str)
+
+	def complete_writereg(self, text, line, beginidx, endidx):
+		return self.autocomplete_reg(line);
 
 	def do_map(self, hi):
 		print(self.regmap_o)

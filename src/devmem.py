@@ -7,7 +7,6 @@ class DevMem(object):
 		self.dmso = cdll.LoadLibrary("./libdevmem.so")
 
 	def read(self, addr):
-
 		# Open file and mmap
 		reg = self.dmso.read_reg(addr)
 		return reg
