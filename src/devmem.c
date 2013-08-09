@@ -1,147 +1,101 @@
 #include "devmem.h"
 
 #define MMAP_BUFFER_LENGTH 1024
-#define READ_COUNT      1 
-#define UART_TX_ADDR 0x021E8040
 
-int read_reg(int addr)
+void write_reg(uint32_t addr, uint32_t value)
 {
-	int i=0;
 	int fd = -1;
-	//int temp;
-	char *anon, *zero, *ptr;
-	int value = 0;
-	int reg_cont = 0;
-	//int write_offset = 0x40;
-	int pagesize = sysconf(_SC_PAGESIZE);
-	//printf("pgesize = %d", pagesize);
+	char *ptr;
+	uint32_t pagesize = sysconf(_SC_PAGESIZE);
+
 	// Open at the boundary of a page
-	int write_offset = (addr % pagesize);
-	int page_boundary_addr = addr - write_offset; 
-	//printf("page_boundary = %x\n", page_boundary_addr);
-	//printf("write_offset = %x\n", write_offset);
-	if ((fd = open("/dev/mem", O_RDWR, 0)) == -1) 
-	{
-		err(1, "open"); 
-	}
-	
-	ptr = mmap(NULL, MMAP_BUFFER_LENGTH, PROT_WRITE | PROT_READ, MAP_SHARED, 
-			fd, page_boundary_addr); 
-	//printf("ptr = %x\n", ptr);
-	//printf("write_offset = %x\n", write_offset); 
-	reg_cont = *(ptr + write_offset); 
-	 
-	munmap(ptr, MMAP_BUFFER_LENGTH); 
+	uint32_t page_offset = (addr % pagesize);
+	uint32_t page_boundary_addr = addr - page_offset; 
 
-	close(fd); 
-
-	return reg_cont;
-}
-
-
-int write_reg(int addr, int value)
-{
-	int i=0;
-	int fd = -1;
-	//int temp;
-	char *anon, *zero, *ptr;
-
-	int reg_cont = 0;
-	//int write_offset = 0x40;
-	int pagesize = sysconf(_SC_PAGESIZE);
-	//printf("pgesize = %d", pagesize);
-	// Open at the boundary of a page
-	int write_offset = (addr % pagesize);
-	int page_boundary_addr = addr - write_offset; 
-	//printf("page_boundary = %x", page_boundary_addr); 
 	if ((fd = open("/dev/mem", O_RDWR, 0)) == -1) 
 	{ 
-		 err(1, "open"); 
+		 err(1, "open");
 	} 
 	
 	ptr = mmap(NULL, MMAP_BUFFER_LENGTH, PROT_WRITE | PROT_READ, MAP_SHARED, 
 			 fd, page_boundary_addr); 
 	 
-	//printf("write_offset = %x\n", write_offset); 
-	*(ptr + write_offset)  = value; 
+	*(ptr + page_offset)  = value; 
 	
 	munmap(ptr, MMAP_BUFFER_LENGTH); 
 
 	close(fd); 
+}
 
+uint32_t read_reg(uint32_t addr)
+{
+	uint32_t reg_cont = 0;
+	read_words(addr, &reg_cont, 1);
 	return reg_cont;
 }
 
-#if 0
-int main(int argc, char *argv[])
+void read_words(uint32_t base_addr, uint32_t* values, size_t num_words)
 {
-	/*write_reg(0x021E8040, (int) 'a');
-	write_reg(0x021E8040, (int) 'l');
-	write_reg(0x021E8040, (int) 'e');
-	write_reg(0x021E8040, (int) 'x');
-	*/
-	int addr = 0x021880E4;
-	printf("Reading register %x:\n", addr);
-	int reg = read_reg(addr);
-	printf("Value is 0x%08x\n\n", reg);
-	addr = 0x021880E8;
-	printf("Reading register %x:\n", addr);
-	reg = read_reg(addr);
-	printf("Value is 0x%08x\n\n", reg);
-	addr = 0x021880EC;
-	printf("Reading register %x:\n", addr);
-	reg = read_reg(addr);
-	printf("Value is 0x%08x\n\n", reg);
-	addr = 0x021E80AC;
-	printf("Reading register %x:\n", addr);
-	reg = read_reg(addr);
-	printf("Value is 0x%08x\n\n", reg);
-}
+	int fd = -1;
+	char *ptr;
+	uint32_t pagesize = sysconf(_SC_PAGESIZE);
 
+	// Open at the boundary of a page
+	uint32_t page_offset = (base_addr % pagesize);
+	uint32_t page_boundary_addr = base_addr - page_offset; 
+	uint32_t* reg_addr;
 
-int main(int argc, char *argv[])
-{
-		int i=0;
-		int fd = -1;
-		//int temp;
-		char *anon, *zero, *ptr;
-		int word_ptr;
-		int word_offset = 0x84;
-		int write_offset = 0x40;
-
-		/*    
-		if(argc > 0)
-		{
-				//printf("0x%x\n", strtol(argv[1], NULL, 0));
-				//printf("%x\n", atoi(argv[0]));
-		}*/
-
-		if ((fd = open("/dev/mem", O_RDWR, 0)) == -1)
-		{
-			err(1, "open");
-		}
-		ptr = mmap(NULL, MMAP_BUFFER_LENGTH, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0x021E8000);
-		//memcpy(buffer, ptr, MMAP_BUFFER_LENGTH);
-		//temp = (int) buffer[i];
-		word_ptr = (int)ptr;
-		printf("Hello\n");
-		//printf("buffer: 0x%x%x%x%x\n", ptr[i+3], ptr[i+2], ptr[i+1], ptr[i]);
-		printf("ptr = %x\n", word_ptr);
-		printf("ptr+1 = %x\n", word_ptr+word_offset);
-		printf("*(ptr+%x) = %x%x%x%x\n",word_offset,*(ptr + word_offset), *(ptr + word_offset+1),
-														*(ptr + word_offset+2), *(ptr + word_offset+3));
-		*(ptr + write_offset)  = '@';
-		printf("ptr = %x\n", *(ptr + write_offset));
-
-		/*
-		for ( i = 0; i < READ_COUNT; i++)
-		{
-				memcpy(buffer, ptr+i, sizeof(int));
-				printf("buffer: 0x%x\n", buffer[i]);
-		}*/
-
-		munmap(ptr, MMAP_BUFFER_LENGTH);
-
-		close(fd);
-}
+#if DEBUG
+	printf("base_addr = %8x\n", base_addr);
+	printf("page_offset = %8x\n", page_offset);
+	printf("page_boundary_addr = %8x\n", page_boundary_addr);
 #endif
+
+	if ((fd = open("/dev/mem", O_RDWR, 0)) == -1)
+	{
+		err(1, "open");
+	}
+	
+	ptr = mmap(NULL, MMAP_BUFFER_LENGTH, PROT_WRITE | PROT_READ, MAP_SHARED, 
+			fd, page_boundary_addr);
+
+	reg_addr = (uint32_t*) (ptr + page_offset);
+
+#if DEBUG	
+	printf("ptr = %8x\n", ptr);
+	printf("page_offset = %8x\n", page_offset);
+	printf("reg_addr = %8x\n", reg_addr);
+#endif
+
+	memcpy(values, reg_addr, num_words*sizeof(uint32_t));
+
+	munmap(ptr, MMAP_BUFFER_LENGTH); 
+
+	close(fd); 
+}
+
+void write_to_console(char character_send)
+{
+	write_reg(UART2_UTXD, character_send);
+}
+
+int main(int argc, char *argv[])
+{
+	if (argc < 2)
+	{
+		printf("Not enough arguments\n");
+		return;
+	}
+
+	int i;
+	uint32_t base_addr = strtol(argv[1], NULL, 0);
+	size_t num_words = (size_t) atoi(argv[2]);
+	printf("num_words = %d\nbase_addr= %08x\n", num_words, base_addr);
+	
+	int values[num_words];
+	read_words(base_addr, values, num_words);
+	for (i = 0; i < num_words; i++)
+	{
+		printf("Value of reg %08x is %08x\n", base_addr+(0x4*i), values[i]);
+	}
+}

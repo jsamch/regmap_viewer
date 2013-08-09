@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
 
-int read_reg(int addr);
-int write_reg(int addr, int value);
+#define UART2_UTXD 0x021E8040
+
+uint32_t read_reg(uint32_t addr);
+void write_reg(uint32_t addr, uint32_t value);
+void read_words(uint32_t base_addr, uint32_t* values, size_t num_words);
