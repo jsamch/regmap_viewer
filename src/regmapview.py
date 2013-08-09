@@ -8,6 +8,7 @@ Register Map Viewer
 import cmd
 import pickle
 from svd import *
+from devmem import *
 
 
 class RegMapViewer(cmd.Cmd, object):	
@@ -66,23 +67,17 @@ class RegMapViewer(cmd.Cmd, object):
 		peripheral = line[0]
 		register = line[1]
 		addr = self.svd.peripherals[peripheral].registers[register].address()
+		#content = self.devmem.read(addr)
 		content = 0x00000098
 		fields = self.svd.peripherals[peripheral].registers[register].get_fields(content)
-		if(self.verbose):
-			field_string = 'The fields are: '
-			for field in fields:
-				field_string += 'name = {0}\n'.format(field[0])
-				field_string += 'description = {0}\n'.format(field[1])
-				field_string += 'value = {0}\n'.format(field[2])
-				field_string += 'access = {0}\n'.format(field[3])
-				field_string += '\n'
-
-			output_str = 'Content of register {0} at address 0x{1:08x}is 0x{2:08x}\n\n'.format(periph_reg, (addr), (content))
-			output_str += field_string
-		else:
-			output_str = 'Content of register {0} at address 0x{1:08x} is 0x{2:08x}\n'.format(periph_reg, (addr), (content))
-			for field in fields:
-				output_str += "{0}({1}) = {2}\n".format(field[0], field[3], field[2])
+		
+		output_str = 'Content of register {0} at address 0x{1:08x} is 0x{2:08x}\n'.format(periph_reg, \
+			(addr), (content))
+		for field in fields:
+			if len(field) == 6:
+				output_str += "{0} ({1}) = {2:0{4}b} ({3})\n".format(field[0], field[3], field[2], field[5], field[4])
+			else:
+				output_str += "{0} ({1}) = {2:0{3}b}\n".format(field[0], field[3], field[2], field[4])
 		print(output_str)
 
 	def complete_readreg(self, text, line, beginidx, endidx):

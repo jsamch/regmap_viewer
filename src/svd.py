@@ -106,6 +106,7 @@ class SVDPeripheralRegister:
 			#print('mask = {0} value = {1}'.format(hex(mask), (hex(value))))
 			calculatedval = value & mask
 			calculatedval = calculatedval >> field.offset
+			field.value = calculatedval
 			#print('calculatedval = {0}'.format(hex(calculatedval) ))
 			try:
 				evs = field.enumeratedValues.values()
@@ -114,11 +115,10 @@ class SVDPeripheralRegister:
 					if (ev.value == calculatedval):
 						field.value = ev.value
 						field.valuedescription = ev.description
-				field_tuple = str(field.name), str(field.description), str(field.valuedescription), str(field.access)
+				field_tuple = str(field.name), str(field.description), field.value, str(field.access), field.width, str(field.valuedescription)
 
 			except AttributeError:
-				field.value = calculatedval
-				field_tuple = str(field.name), str(field.description), str(field.value), str(field.access)
+				field_tuple = str(field.name), str(field.description), field.value, str(field.access), field.width
 				
 			register_fields.append(field_tuple)
 		return register_fields
