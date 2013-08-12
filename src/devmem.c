@@ -20,11 +20,27 @@ void write_reg(uint32_t addr, uint32_t value)
 	ptr = mmap(NULL, MMAP_BUFFER_LENGTH, PROT_WRITE | PROT_READ, MAP_SHARED, 
 			 fd, page_boundary_addr); 
 	 
-	*(ptr + page_offset)  = value; 
+	memcpy(ptr + page_offset, &value, sizeof(uint32_t));
 	
 	munmap(ptr, MMAP_BUFFER_LENGTH); 
 
 	close(fd); 
+}
+
+void write_field(uint32_t addr, uint32_t value, uint32_t width, uint32_t offset)
+{
+	// Build the mask
+	uint32_t masked = 0;
+	uint32_t mask = 0;
+	uint32_t bits = (1 << width) - 1;
+	uint32_t prev = read_reg(addr);
+	mask = bits << offset;
+	mask = ~mask;
+	masked = prev & mask;
+
+	masked = masked | (value << offset);
+	printf("Writing %08x\n", masked);
+	write_reg(addr, masked);
 }
 
 uint32_t read_reg(uint32_t addr)
@@ -81,6 +97,7 @@ void write_to_console(char character_send)
 
 int main(int argc, char *argv[])
 {
+#if 0
 	if (argc < 2)
 	{
 		printf("Not enough arguments\n");
@@ -98,4 +115,13 @@ int main(int argc, char *argv[])
 	{
 		printf("Value of reg %08x is %08x\n", base_addr+(0x4*i), values[i]);
 	}
+#endif
+	//uint32_t value = strtol(argv[1], NULL, 0);
+	//write_field(0x021e8084, 0x01, 2, 9);
+	write_reg(0x021e8084, 0x00005027);
+	uint32_t value = read_reg(0x021e8084);
+	printf("value = %08x\n", value);
+
 }
+
+// void write_field(uint32_t addr, uint32_t value, uint32_t width, uint32_t offset)

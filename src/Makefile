@@ -1,9 +1,8 @@
-all: devmem bitmask
+all: devmem regplay
 
 devmem: devmem.c
 	gcc devmem.c -fpic -c -o devmem.o
 	gcc -shared -o libdevmem.so devmem.o
 
-bitmask: bitmask.c
-	gcc bitmask.c -fpic -c -o bitmask.o
-	gcc -shared -o libbitmask.so bitmask.o
+regplay: devmem.c
+	gcc devmem.c -o regplay

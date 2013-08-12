@@ -12,9 +12,16 @@ class DevMem(object):
 		return reg
 
 	def write(self, addr, value):
-		msg = c_int(value)
+		caddr = c_uint32(addr)
+		msg = c_uint32(value)
 		self.dmso.write_reg(addr, msg)
 
+	def writefield(self, addr, value, width, offset):
+		caddr = c_uint32(addr)
+		cvalue = c_uint32(value)
+		cwidth = c_uint32(width)
+		coffset = c_uint32(offset)
+		self.dmso.write_field(caddr, cvalue, cwidth, coffset)
 
 
 if __name__ == '__main__':

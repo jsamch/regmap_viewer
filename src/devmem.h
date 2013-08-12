@@ -13,3 +13,4 @@
 uint32_t read_reg(uint32_t addr);
 void write_reg(uint32_t addr, uint32_t value);
 void read_words(uint32_t base_addr, uint32_t* values, size_t num_words);
+void write_field(uint32_t addr, uint32_t value, uint32_t width, uint32_t offset);

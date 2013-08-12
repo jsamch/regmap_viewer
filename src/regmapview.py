@@ -21,7 +21,6 @@ class RegMapViewer(cmd.Cmd, object):
 		self.reset_autocomplete()
 		self.verbose = False
 		self.devmem = DevMem()
-		self.bm = cdll.LoadLibrary("./libbitmask.so")
 
 	def reset_autocomplete(self):
 		self.rr_num_words_in_line = 0
@@ -96,10 +95,10 @@ class RegMapViewer(cmd.Cmd, object):
 		content = int(line[1][0])
 		addr = self.svd.peripherals[peripheral].registers[register].address()
 		beforecontent = self.devmem.read(addr)
-		output_str = 'Before write: content of register {0} is {1}'.format(addr, beforecontent)
+		output_str = 'Before write: content of {0} is {1:08x}'.format(addr, beforecontent)
 		print(output_str)
 		self.devmem.write(addr, content)
-		output_str = 'After write: content of register {0} is {1}'.format(addr, content)
+		output_str = 'After write: content of register {0} is {1:08x}'.format(addr, content)
 		print(output_str)
 
 	def complete_writereg(self, text, line, beginidx, endidx):
@@ -123,7 +122,7 @@ class RegMapViewer(cmd.Cmd, object):
 		""" Set a register field to a specific value"""
 		# Reset the autocomplete parameters
 		self.reset_autocomplete()
-		line = periph_reg_content_field.split(' ')
+		line = periph_reg_field_content.split(' ')
 		periph_reg = line[0].split('_')
 		peripheral_str = periph_reg[0]
 		register_str = periph_reg[1]
@@ -131,17 +130,16 @@ class RegMapViewer(cmd.Cmd, object):
 		newbits = int(line[2], 2) # Intepret as binary
 		register = self.svd.peripherals[peripheral_str].registers[register_str]
 		field = register.fields[field_str]
-
+		addr = register.address()
 		prevvalue = self.devmem.read(addr)
-
+		#prevvalue = 0x0000002A
 		# Get the new value
-		newvalue = self.bm.new_reg_value(c_uint32(prevvalue),\
-		c_uint32(newbits),  c_uint32(field.width), c_uint32(field.offset))
+		self.devmem.writefield(addr, newbits, field.width, field.offset)
 
-		output_str = 'Before write: content of register {0} is {1}'.format(addr, prevvalue)
+		output_str = 'Before write: content of {0} is {1:08x}'.format(register_str, prevvalue)
 		print(output_str)
-		self.devmem.write(addr, newvalue)
-		output_str = 'After write: content of register {0} is {1}'.format(addr, newvalue)
+		newvalue = self.devmem.read(addr)
+		output_str = 'After write: content of {0} is {1:08x}'.format(register_str, newvalue)
 		print(output_str)
 
 	def do_exit(self, line):
