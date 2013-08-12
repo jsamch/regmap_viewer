@@ -9,6 +9,7 @@ import cmd
 import pickle
 from svd import *
 from devmem import *
+from ctypes import *
 
 
 class RegMapViewer(cmd.Cmd, object):	
@@ -20,6 +21,7 @@ class RegMapViewer(cmd.Cmd, object):
 		self.reset_autocomplete()
 		self.verbose = False
 		self.devmem = DevMem()
+		self.bm = cdll.LoadLibrary("./libbitmask.so")
 
 	def reset_autocomplete(self):
 		self.rr_num_words_in_line = 0
@@ -117,27 +119,29 @@ class RegMapViewer(cmd.Cmd, object):
 	def complete_addr(self, text, line, beginidx, endidx):
 		return self.autocomplete_reg(line)
 
-	def do_rp(self, periph):
-		self.do_readperiph(periph)
+	def do_writefield(self, periph_reg_field_content):
+		""" Set a register field to a specific value"""
+		# Reset the autocomplete parameters
+		self.reset_autocomplete()
+		line = periph_reg_content_field.split(' ')
+		periph_reg = line[0].split('_')
+		peripheral_str = periph_reg[0]
+		register_str = periph_reg[1]
+		field_str = line[1]
+		newbits = int(line[2], 2) # Intepret as binary
+		register = self.svd.peripherals[peripheral_str].registers[register_str]
+		field = register.fields[field_str]
 
-	def do_readperiph(self, periph):
-		"""Retrieves the contents of a particular peripheral"""
-		content = 0
-		output_str = 'Content of peripheral {0} is {1}'.format(periph, content) 
+		prevvalue = self.devmem.read(addr)
 
-	def do_getfield(self, register, field):
-		"""Retrieves the contents of a particular field"""
-		
-		content = 0
-		output_str = 'Content of field {0} of register {1} is {2}'.format(register, field, content)
+		# Get the new value
+		newvalue = self.bm.new_reg_value(c_uint32(prevvalue),\
+		c_uint32(newbits),  c_uint32(field.width), c_uint32(field.offset))
+
+		output_str = 'Before write: content of register {0} is {1}'.format(addr, prevvalue)
 		print(output_str)
-
-	def do_setfield(self, register, field, bits):
-		""" Set the field of a particular register to a specific value"""
-		content = 0
-		output_str = 'Content of field {0} of register {1} is {2} before writing is'.format(register, field, content)
-		print(output_str)
-		output_str = 'Content of field {0} of register {1} is {2} after writing is'.format(register, field, bits)
+		self.devmem.write(addr, newvalue)
+		output_str = 'After write: content of register {0} is {1}'.format(addr, newvalue)
 		print(output_str)
 
 	def do_exit(self, line):
