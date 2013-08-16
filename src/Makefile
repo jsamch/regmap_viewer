@@ -5,4 +5,8 @@ devmem: devmem.c
 	gcc -shared -o libdevmem.so devmem.o
 
 regplay: devmem.c
-	gcc devmem.c -o regplay
+	gcc devmem.c -o regplay.o
+
+clean:
+	rm *.so
+	rm *.o
