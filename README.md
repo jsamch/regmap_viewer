@@ -13,11 +13,21 @@ can download SVD files for different manufacturers
 
 ## Installation instructions
 
-    cd regmap_viewer
-    make all
+Make sure you have python3 installed with lxml. This tool will not work with python2.
 
-Make sure you have python3 installed. This tool will not work with python2.
+    sudo apt-get install python3-pip
+    sudo pip install lxml
+    
+    cd regmap_viewer
+    make all    
+
+
     
 ## Running instructions
 
     python regmapview.py
+
+## Bugs
+There are still some issues with some svd files which are not formatted correctly 
+
+Auto-complete feature is still a bit fidgety. 
